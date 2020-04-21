@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:ac_fun/Pages/Http/dio_part.dart';
 import 'package:flutter/material.dart';
 import 'package:fijkplayer/fijkplayer.dart';
@@ -38,13 +40,31 @@ class _VideoScreenState extends State<VideoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    double rpxW = MediaQuery.of(context).size.width / 750;
+    double rpxH = MediaQuery.of(context).size.width / 750;
     return Scaffold(
         appBar: AppBar(title: Text("Fijkplayer Example")),
-        body: Container(
-          child: FijkView(
-            player: player,
-          ),
-        )
+        body: Column(
+            children: <Widget>[
+               Container(
+                 width: 750*rpxW,
+                 height: 500*rpxH,
+                 child: FijkView(
+                  player: player,
+                  // fit: FijkFit.fill,
+                  panelBuilder: (FijkPlayer fijkPlayer, FijkData fijkData, BuildContext context, Size size, Rect rect){
+                    return CustomFijkPanel(
+                      player: fijkPlayer,
+                      buildContext: context,
+                      viewSize: size,
+                      texturePos: rect,
+                    );
+                  },
+                )
+               ),
+ 
+            ],
+          )
       );
   }
 
@@ -52,5 +72,76 @@ class _VideoScreenState extends State<VideoScreen> {
   void dispose() {
     super.dispose();
     player.release();
+  }
+}
+
+class CustomFijkPanel extends StatefulWidget {
+  final FijkPlayer player;
+  final BuildContext buildContext;
+  final Size viewSize;
+  final Rect texturePos;
+
+  const CustomFijkPanel({
+    @required this.player,
+    this.buildContext,
+    this.viewSize,
+    this.texturePos,
+  });
+
+  @override
+  _CustomFijkPanelState createState() => _CustomFijkPanelState();
+}
+
+class _CustomFijkPanelState extends State<CustomFijkPanel> {
+
+  FijkPlayer get player => widget.player;
+  bool _playing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.player.addListener(_playerValueChanged);
+  }
+
+  void _playerValueChanged() {
+    FijkValue value = player.value;
+
+    bool playing = (value.state == FijkState.started);
+    if (playing != _playing) {
+      setState(() {
+        _playing = playing;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Rect rect = Rect.fromLTRB(
+        max(0.0, widget.texturePos.left),
+        max(0.0, widget.texturePos.top),
+        min(widget.viewSize.width, widget.texturePos.right),
+        min(widget.viewSize.height, widget.texturePos.bottom));
+
+    return Positioned.fromRect(
+      rect: rect,
+      child: Container(
+        alignment: Alignment.bottomLeft,
+        child: IconButton(
+          icon: Icon(
+            _playing ? Icons.pause : Icons.play_arrow,
+            color: Colors.white,
+          ),
+          onPressed: () {
+            _playing ? widget.player.pause() : widget.player.start();
+          },
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    player.removeListener(_playerValueChanged);
   }
 }

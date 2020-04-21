@@ -4,6 +4,8 @@ import 'package:flutter_swiper/flutter_swiper.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'Video_Player/videoDetail.dart';
 import 'Video_Player/FIJKPlayer.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+
 class BestSelectVideo extends StatefulWidget {
   @override
   _BestSelectVideoState createState() => _BestSelectVideoState();
@@ -150,17 +152,18 @@ class ACHotView extends StatelessWidget {
                     onTap: () {
                       Navigator.push(
                         context,
-                        // new MaterialPageRoute(
-                        //     builder: (context) => new VideoDetailPage(
-                        //           contentId: hotData["bodyContents"][index]
-                        //               ["href"],
-                        //           videoId: hotData["bodyContents"][index]
-                        //               ["detail"]["videoId"],
-                        //           playDuration: hotData["bodyContents"][index]
-                        //               ["detail"]["playDuration"],
-                        //         )
-                        //     ),
-
+                        index%2==0?
+                        new MaterialPageRoute(
+                            builder: (context) => new VideoDetailPage(
+                                  contentId: hotData["bodyContents"][index]
+                                      ["href"],
+                                  videoId: hotData["bodyContents"][index]
+                                      ["detail"]["videoId"],
+                                  playDuration: hotData["bodyContents"][index]
+                                      ["detail"]["playDuration"],
+                                )
+                            )
+                        :
                         new MaterialPageRoute(
                             builder: (context) => new VideoScreen(
                                   contentId: hotData["bodyContents"][index]
